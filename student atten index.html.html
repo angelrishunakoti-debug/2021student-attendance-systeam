@@ -1,0 +1,178 @@
+import { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { UserCheck, Users, CalendarDays, ClipboardList, LogIn, LogOut, Clock } from 'lucide-react';
+
+export default function SmartAttendanceApp() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const [attendanceData, setAttendanceData] = useState([
+    { date: 'Mon', present: 45, absent: 5 },
+    { date: 'Tue', present: 48, absent: 2 },
+    { date: 'Wed', present: 50, absent: 0 },
+    { date: 'Thu', present: 46, absent: 4 },
+    { date: 'Fri', present: 47, absent: 3 }
+  ]);
+
+  const [students, setStudents] = useState([
+    { id: 'ST001', name: 'Aarav Mehta', status: 'Present' },
+    { id: 'ST002', name: 'Priya Sharma', status: 'Present' },
+    { id: 'ST003', name: 'Rahul Verma', status: 'Absent' },
+    { id: 'ST004', name: 'Isha Patel', status: 'Present' },
+    { id: 'ST005', name: 'Rohan Gupta', status: 'Present' }
+  ]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const markAttendance = (id, status) => {
+    setStudents(prev =>
+      prev.map(s => (s.id === id ? { ...s, status } : s))
+    );
+  };
+
+  if (!loggedIn) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-50 to-blue-200">
+        <Card className="p-8 shadow-xl w-96 text-center">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-blue-700">Smart Attendance Login</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input placeholder="Enter Admin ID" className="mb-3" />
+            <Input type="password" placeholder="Enter Password" className="mb-4" />
+            <Button onClick={() => setLoggedIn(true)} className="w-full bg-blue-700 hover:bg-blue-800 text-white flex items-center justify-center gap-2">
+              <LogIn className="w-5 h-5" /> Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+      <header className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-blue-700">Smart Attendance System</h1>
+          <p className="text-gray-600 text-lg">Empowering digital attendance for modern classrooms</p>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center bg-white px-4 py-2 rounded-lg shadow-md">
+            <Clock className="text-blue-700 mr-2" />
+            <p className="font-semibold text-gray-800">{time}</p>
+          </div>
+          <Button onClick={() => setLoggedIn(false)} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
+            <LogOut className="w-4 h-4" /> Logout
+          </Button>
+        </div>
+      </header>
+
+      {/* Dashboard Overview */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <Card className="shadow-lg">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-gray-500">Total Students</p>
+              <h3 className="text-2xl font-bold">50</h3>
+            </div>
+            <Users className="text-blue-600 w-10 h-10" />
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-gray-500">Present Today</p>
+              <h3 className="text-2xl font-bold text-green-700">{students.filter(s => s.status === 'Present').length}</h3>
+            </div>
+            <UserCheck className="text-green-600 w-10 h-10" />
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-gray-500">Absent Today</p>
+              <h3 className="text-2xl font-bold text-red-700">{students.filter(s => s.status === 'Absent').length}</h3>
+            </div>
+            <ClipboardList className="text-red-600 w-10 h-10" />
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-gray-500">Last Updated</p>
+              <h3 className="text-2xl font-bold">02 Nov 2025</h3>
+            </div>
+            <CalendarDays className="text-purple-600 w-10 h-10" />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Chart Section */}
+      <Card className="shadow-xl mb-10">
+        <CardHeader>
+          <CardTitle className="text-xl text-blue-700">Weekly Attendance Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={attendanceData}>
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="present" fill="#2563eb" name="Present" />
+              <Bar dataKey="absent" fill="#ef4444" name="Absent" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Student Profiles */}
+      <h2 className="text-2xl font-semibold text-blue-700 mb-4">Today's Attendance</h2>
+      <div className="grid md:grid-cols-3 gap-6 mb-10">
+        {students.map((student) => (
+          <Card key={student.id} className="shadow-lg hover:shadow-2xl transition-all">
+            <CardContent className="flex justify-between items-center p-5">
+              <div>
+                <h4 className="font-bold text-gray-800">{student.name}</h4>
+                <p className="text-gray-500 text-sm">ID: {student.id}</p>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                student.status === 'Present'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              }`}>
+                {student.status}
+              </span>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Attendance Form */}
+      <div className="mt-10 max-w-xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-blue-700 text-center">Mark Attendance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4">
+              <Input id="studentId" placeholder="Enter Student ID" />
+              <div className="flex gap-4 justify-center">
+                <Button onClick={(e) => { e.preventDefault(); markAttendance(document.getElementById('studentId').value, 'Present'); }} className="bg-green-600 hover:bg-green-700">Present</Button>
+                <Button onClick={(e) => { e.preventDefault(); markAttendance(document.getElementById('studentId').value, 'Absent'); }} className="bg-red-600 hover:bg-red-700">Absent</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      <footer className="text-center text-gray-500 mt-10 text-sm">
+        © 2025 Smart Attendance | Designed for Skill Competition 2025
+      </footer>
+    </div>
+  );
+}
